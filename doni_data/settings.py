@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 #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
 from pathlib import Path
+from datetime import timedelta
+from API.firebaseConfig import FIREBASE_CONFIG
+import pyrebase
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,6 +45,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'rest_framework',
     'drf_yasg',
+    'rest_framework_simplejwt',
+    'corsheaders',
     'API',
 ]
 
@@ -53,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = "doni_data.urls"
@@ -80,18 +86,16 @@ WSGI_APPLICATION = "doni_data.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",  
-        "NAME": "doni_db",                    
-        "USER": "iamroot",            
-        "PASSWORD": "IamRoot@2025",    
-        "HOST": "127.0.0.1",                 
-        "PORT": "3306",                       
-        "OPTIONS": {
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'"
-        }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'doni_db',
+        'USER': 'postgres',
+        'PASSWORD': 'iamroot',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 
 
@@ -139,20 +143,52 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Django REST Framework configuration
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",  # All endpoints require authentication by default
+        "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
-        "rest_framework.renderers.BrowsableAPIRenderer",  # For debugging in the browsable API
+        "rest_framework.renderers.BrowsableAPIRenderer",
     ],
 }
 
 # Swagger Documentation
 SWAGGER_SETTINGS = {
     "DEFAULT_API_URL": "http://127.0.0.1:8000/",
-    "USE_SESSION_AUTH": True,
+    "USE_SESSION_AUTH": False,
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "Entrez votre token Firebase avec le préfixe 'Bearer '. Exemple: Bearer votre_token"
+        }
+    },
+    "SECURITY": [{"Bearer": []}],
+    "OPERATIONS_SORTER": "method",
+    "VALIDATOR_URL": None,
+    "DOC_EXPANSION": "list",
 }
+
+# Configuration JWT
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
+
+# Configuration CORS pour permettre les requêtes cross-origin
+CORS_ALLOW_ALL_ORIGINS = True  # En développement seulement
+# En production, utilisez plutôt :
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",  # Frontend React
+#     "http://localhost:8081",  # Frontend Vue
+#     "app://localhost",        # Application mobile
+# ]
+
+# Configuration Firebase
+firebase = pyrebase.initialize_app(FIREBASE_CONFIG)

@@ -1,4 +1,10 @@
 django>=4.2.0
 djangorestframework
 drf-yasg
-pyrebase4
+pyrebase4==4.7.1
+psycopg2-binary
+djangorestframework-simplejwt==5.3.1
+django-cors-headers==4.3.1
+setuptools
+google-cloud-storage
+firebase-admin
